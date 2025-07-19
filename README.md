@@ -1,1 +1,0 @@
-基于vercel的免费ai绘图web,只需要在vercel部署即可,无需配置,不过node版本必须为18.X

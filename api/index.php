@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dreamify 图像生成</title>
+    <title>Ai 图像生成</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -41,7 +41,7 @@
     <header class="bg-gradient-primary text-white shadow-lg">
         <div class="container mx-auto px-4 py-6">
             <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-shadow">
-                <i class="fa fa-paint-brush mr-2"></i>Dreamify 图像生成
+                <i class="fa fa-paint-brush mr-2"></i>Ai 图像生成
             </h1>
             <p class="text-blue-100 mt-2">基于AI的图像生成工具</p>
         </div>
@@ -113,7 +113,7 @@
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-xl shadow-md p-6 mb-6">
                     <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fa fa-image text-primary mr-2"></i>生成结果
+                        <i class="fa fa-image text-primary mr-2"></i>生成结果[耐心等待1-5分钟]
                     </h2>
                     <div id="loadingIndicator" class="hidden flex justify-center items-center py-12">
                         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -166,7 +166,7 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-4 md:mb-0">
-                    <p>© 2025 Dreamify 图像生成工具</p>
+                    <p>© 2025 Tawer 图像生成工具</p>
                 </div>
                 <div class="flex space-x-4">
                     <a href="#" class="text-gray-300 hover:text-white transition-colors">

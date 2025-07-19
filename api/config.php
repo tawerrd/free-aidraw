@@ -6,20 +6,12 @@ $models = [
         'label' => 'Flux-Dev'
     ],
     [
-        'value' => 'DreamShaper',
-        'label' => 'DreamShaper'
+        'value' => 'HiDream-full-fp8',
+        'label' => 'HiDream-full-fp8'
     ],
     [
-        'value' => 'StableDiffusion',
-        'label' => 'StableDiffusion'
-    ],
-    [
-        'value' => 'WaifuDiffusion',
-        'label' => 'WaifuDiffusion'
-    ],
-    [
-        'value' => 'OpenJourney',
-        'label' => 'OpenJourney'
+        'value' => 'Stable-Diffusion-3.5',
+        'label' => 'Stable-Diffusion-3.5'
     ]
 ];
 

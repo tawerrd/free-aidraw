@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreamify 图像生成</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#722ED1',
+                        dark: '#1D2129',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #165DFF 0%, #722ED1 100%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter text-dark min-h-screen flex flex-col">
+    <header class="bg-gradient-primary text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-shadow">
+                <i class="fa fa-paint-brush mr-2"></i>Dreamify 图像生成
+            </h1>
+            <p class="text-blue-100 mt-2">基于AI的图像生成工具</p>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-8">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-sliders text-primary mr-2"></i>参数设置
+                    </h2>
+                    <form id="generationForm" class="space-y-4">
+                        <div>
+                            <label for="prompt" class="block text-sm font-medium text-gray-700 mb-1">提示词 (Prompt)</label>
+                            <textarea id="prompt" name="prompt" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="描述你想要生成的图像...">girl</textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="width" class="block text-sm font-medium text-gray-700 mb-1">宽度 (Width)</label>
+                                <input type="number" id="width" name="width" value="1024" min="256" max="2048" step="64" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                            </div>
+                            <div>
+                                <label for="height" class="block text-sm font-medium text-gray-700 mb-1">高度 (Height)</label>
+                                <input type="number" id="height" name="height" value="1024" min="256" max="2048" step="64" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="steps" class="block text-sm font-medium text-gray-700 mb-1">步数 (Steps)</label>
+                                <input type="number" id="steps" name="steps" value="30" min="1" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                            </div>
+                            <div>
+                                <label for="seed" class="block text-sm font-medium text-gray-700 mb-1">随机种子 (Seed)</label>
+                                <input type="number" id="seed" name="seed" value="20613403" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="batch_size" class="block text-sm font-medium text-gray-700 mb-1">批量大小</label>
+                                <input type="number" id="batch_size" name="batch_size" value="1" min="1" max="8" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                            </div>
+                            <div>
+                                <label for="model" class="block text-sm font-medium text-gray-700 mb-1">模型 (Model)</label>
+                                <select id="model" name="model" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                                    <!-- 模型选项将通过JavaScript动态加载 -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" id="randomSeedBtn" class="text-sm text-primary hover:text-primary/80 transition-colors">
+                                <i class="fa fa-random mr-1"></i> 随机种子
+                            </button>
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" id="generateBtn" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+                                <i class="fa fa-magic mr-2"></i> 生成图像
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-image text-primary mr-2"></i>生成结果
+                    </h2>
+                    <div id="loadingIndicator" class="hidden flex justify-center items-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                        <p class="ml-4 text-gray-500">正在生成图像，请稍候...</p>
+                    </div>
+                    <div id="resultContainer" class="hidden">
+                        <div class="relative mb-4">
+                            <img id="generatedImage" src="" alt="生成的图像" class="w-full h-auto rounded-lg shadow-md">
+                            <button id="downloadBtn" class="absolute bottom-4 right-4 bg-white/80 hover:bg-white text-primary font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-all flex items-center">
+                                <i class="fa fa-download mr-1"></i> 下载
+                            </button>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-medium mb-2">提示词</h3>
+                            <p id="resultPrompt" class="text-gray-700"></p>
+                        </div>
+                    </div>
+                    <div id="errorContainer" class="hidden bg-red-50 border border-red-200 p-4 rounded-lg mt-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 pt-0.5">
+                                <i class="fa fa-exclamation-circle text-red-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">生成失败</h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <p id="errorMessage"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-history text-primary mr-2"></i>历史记录
+                    </h2>
+                    <div id="historyContainer" class="space-y-4">
+                        <!-- 历史记录将通过JavaScript动态加载 -->
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fa fa-clock-o text-3xl mb-2"></i>
+                            <p>暂无生成历史</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white py-6 mt-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p>© 2025 Dreamify 图像生成工具</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="fa fa-github"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <i class="fa fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 从config.php获取模型列表
+        async function loadModels() {
+            try {
+                const response = await fetch('config.php');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const models = await response.json();
+                const modelSelect = document.getElementById('model');
+                
+                // 清空现有选项
+                modelSelect.innerHTML = '';
+                
+                // 添加新选项
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.value;
+                    option.textContent = model.label;
+                    if (model.value === 'Flux-Dev') {
+                        option.selected = true;
+                    }
+                    modelSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('获取模型列表失败:', error);
+                alert('获取模型列表失败，请刷新页面重试');
+            }
+        }
+
+        // 生成随机种子
+        function generateRandomSeed() {
+            return Math.floor(Math.random() * 100000000);
+        }
+
+        // 保存历史记录到localStorage
+        function saveToHistory(imageUrl, prompt) {
+            const history = JSON.parse(localStorage.getItem('dreamifyHistory') || '[]');
+            history.unshift({
+                id: Date.now(),
+                imageUrl,
+                prompt,
+                timestamp: new Date().toISOString()
+            });
+            
+            // 限制历史记录数量为10
+            if (history.length > 10) {
+                history.pop();
+            }
+            
+            localStorage.setItem('dreamifyHistory', JSON.stringify(history));
+            updateHistoryDisplay();
+        }
+
+        // 更新历史记录显示
+        function updateHistoryDisplay() {
+            const historyContainer = document.getElementById('historyContainer');
+            const history = JSON.parse(localStorage.getItem('dreamifyHistory') || '[]');
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fa fa-clock-o text-3xl mb-2"></i>
+                        <p>暂无生成历史</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            historyContainer.innerHTML = '';
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'border border-gray-200 rounded-lg overflow-hidden flex flex-col sm:flex-row';
+                historyItem.innerHTML = `
+                    <div class="sm:w-1/4">
+                        <img src="${item.imageUrl}" alt="历史生成图像" class="w-full h-32 sm:h-full object-cover">
+                    </div>
+                    <div class="sm:w-3/4 p-4">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium">生成于 ${new Date(item.timestamp).toLocaleString()}</h3>
+                            <button class="text-primary hover:text-primary/80 text-sm transition-colors" onclick="loadHistoryImage('${item.imageUrl}', '${escapeHTML(item.prompt)}')">
+                                <i class="fa fa-eye mr-1"></i> 查看
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2 line-clamp-2">${item.prompt}</p>
+                    </div>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        // 加载历史图像
+        function loadHistoryImage(imageUrl, prompt) {
+            document.getElementById('generatedImage').src = imageUrl;
+            document.getElementById('resultPrompt').textContent = unescapeHTML(prompt);
+            document.getElementById('resultContainer').classList.remove('hidden');
+            document.getElementById('errorContainer').classList.add('hidden');
+        }
+
+        // 辅助函数：转义HTML
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // 辅助函数：反转义HTML
+        function unescapeHTML(str) {
+            return str
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#039;/g, "'");
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadModels();
+            updateHistoryDisplay();
+            
+            // 随机种子按钮事件
+            document.getElementById('randomSeedBtn').addEventListener('click', function() {
+                document.getElementById('seed').value = generateRandomSeed();
+            });
+            
+            // 表单提交事件
+            document.getElementById('generationForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // 显示加载状态
+                document.getElementById('loadingIndicator').classList.remove('hidden');
+                document.getElementById('resultContainer').classList.add('hidden');
+                document.getElementById('errorContainer').classList.add('hidden');
+                
+                // 收集表单数据
+                const formData = {
+                    prompt: document.getElementById('prompt').value,
+                    width: parseInt(document.getElementById('width').value),
+                    height: parseInt(document.getElementById('height').value),
+                    steps: parseInt(document.getElementById('steps').value),
+                    seed: parseInt(document.getElementById('seed').value),
+                    batch_size: parseInt(document.getElementById('batch_size').value),
+                    model: document.getElementById('model').value,
+                    images: []
+                };
+                
+                try {
+                    // 发送请求到后端
+                    const response = await fetch('generate.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    // 显示结果
+                    document.getElementById('generatedImage').src = result.imageUrl;
+                    document.getElementById('resultPrompt').textContent = formData.prompt;
+                    document.getElementById('resultContainer').classList.remove('hidden');
+                    
+                    // 保存到历史记录
+                    saveToHistory(result.imageUrl, formData.prompt);
+                } catch (error) {
+                    console.error('生成图像失败:', error);
+                    document.getElementById('errorMessage').textContent = error.message || '生成图像时发生错误';
+                    document.getElementById('errorContainer').classList.remove('hidden');
+                } finally {
+                    // 隐藏加载状态
+                    document.getElementById('loadingIndicator').classList.add('hidden');
+                }
+            });
+            
+            // 下载按钮事件
+            document.getElementById('downloadBtn').addEventListener('click', function() {
+                const img = document.getElementById('generatedImage');
+                const link = document.createElement('a');
+                link.download = 'dreamify-image.png';
+                link.href = img.src;
+                link.click();
+            });
+        });
+    </script>
+</body>
+</html>
+    
